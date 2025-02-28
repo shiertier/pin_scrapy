@@ -16,7 +16,26 @@ class SearchBoards:
         """
         self.client = client
 
-    def get_all(self, query: str) -> List[str]:
+    def get_ids(self, query: str) -> List[str]:
+        boards_data = self.get_data(query)
+        return list(dict([(board_data['id'], board_data) for board_data in boards_data]).keys())
+
+    def get_data(self, query: str) -> List[Dict[str, Any]]:
+        boards_data_origin = self.get_data_origin(query)
+        boards_data = []
+        for board_data_origin in boards_data_origin:
+            board_data = {
+                'id': board_data_origin['id'],
+                # 'node_id': board_data_origin['node_id'],
+                'name': board_data_origin['name'],
+                'url': board_data_origin['url'],
+                'follower_count': board_data_origin['follower_count'],
+                'pin_count': board_data_origin['pin_count'],
+            }
+            boards_data.append(board_data)
+        return boards_data
+
+    def get_data_origin(self, query: str) -> List[str]:
         """
         搜索画板
 
