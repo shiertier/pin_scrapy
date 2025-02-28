@@ -1,0 +1,14 @@
+*.pyc
+*.pyo
+*.pyd
+*.pyw
+*.pyz
+*.pywz
+*.pyzw
+
+__pycache__
+
+*.ipynb_checkpoints
+
+*downloads
+cookies.txt
