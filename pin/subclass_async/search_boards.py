@@ -17,7 +17,7 @@ class SearchBoards:
         """
         self.client = client
 
-    async def get_all(self, query: str) -> List[str]:
+    async def get_ids(self, query: str) -> List[str]:
         """
         搜索画板
 
@@ -44,6 +44,9 @@ class SearchBoards:
                 if bookmark == "-end-" or bookmark == '%22-end-%22':
                     break
             except Exception as e:
+                # 显示错误堆栈
+                import traceback
+                traceback.print_exc()
                 logger.error(f"获取数据失败: {e}")
                 break
 

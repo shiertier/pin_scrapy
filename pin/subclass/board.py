@@ -1,8 +1,8 @@
-import requests
 import time
 import urllib.parse
 from ..utils import logger
 from typing import List, Dict, Any
+import httpx
 
 class Board:
     """画板操作类(同步版本)"""
@@ -37,6 +37,7 @@ class Board:
                 },
                 'text': {
                     'title': pic.get('title', ''),
+                    'auto_alt_text': pic.get('auto_alt_text', ''),
                 }
             })
         return pics_data
@@ -123,7 +124,7 @@ class Board:
                 bookmark = data['resource']['options']['bookmarks'][0]
                 return batch, bookmark
 
-            except (requests.Timeout, requests.ConnectionError) as e:
+            except (httpx.TimeoutException, httpx.NetworkError) as e:
                 logger.warning(f"请求超时,重试中... ({t}s)")
                 time.sleep(5)
                 if t == 60:  # 最后一次重试失败

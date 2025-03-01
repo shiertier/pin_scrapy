@@ -1,4 +1,4 @@
-import requests
+import httpx
 import time
 import urllib.parse
 from ..utils import logger
@@ -130,10 +130,9 @@ class SearchPics:
                     timeout=60
                 )
                 data = r.json()
-                print(data)
                 # 修正数据提取路径
                 batch = data['resource_response']['data']['results']
-                bookmark = data['resource_response'].get('bookmark')  # 使用get避免KeyError
+                bookmark = data['resource_response'].get('bookmark', '-end-')  # 使用get避免KeyError
 
                 # 如果没有bookmark，说明是最后一页
                 if not bookmark:
@@ -141,7 +140,7 @@ class SearchPics:
 
                 return batch, bookmark
 
-            except (requests.Timeout, requests.ConnectionError) as e:
+            except (httpx.TimeoutException, httpx.NetworkError) as e:
                 logger.warning(f"请求超时,重试中... ({t}s)")
                 time.sleep(5)
                 if t == 60:  # 最后一次重试失败

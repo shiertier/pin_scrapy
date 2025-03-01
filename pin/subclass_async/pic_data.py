@@ -2,6 +2,7 @@ from ..utils import logger
 from typing import Dict, Any
 import json
 from bs4 import BeautifulSoup
+import time
 
 class PicData:
     """图片数据操作类"""
@@ -15,7 +16,7 @@ class PicData:
         """
         self.client = client
 
-    async def get(self, pin_id: str) -> Dict[str, Any]:
+    async def get_origin(self, pin_id: str) -> Dict[str, Any]:
         """
         获取图片详细数据
 
@@ -26,7 +27,8 @@ class PicData:
         """
         try:
             r = await self.client.client.get(
-                f"https://www.pinterest.com/pin/{pin_id}/"
+                f"https://www.pinterest.com/pin/{pin_id}/",
+                timeout=60
             )
 
             # 解析HTML获取数据
@@ -44,3 +46,36 @@ class PicData:
         except Exception as e:
             logger.error(f"获取图片数据失败: {e}")
             raise Exception(f"获取图片数据失败: pin_id={pin_id}")
+
+    async def get(self, pin_id: str) -> Dict[str, Any]:
+        """
+        获取图片详细数据
+        """
+        p = await self.get_origin(pin_id)
+        data = {
+            'id': p['entityId'],
+            'url': p.get('imageSpec_orig', {}).get('url', ''),
+            'width': p.get('imageSpec_orig', {}).get('width', 0),
+            'height': p.get('imageSpec_orig', {}).get('height', 0),
+            'link': p.get('link', ''),
+            'created_at': int(time.mktime(time.strptime(p.get('createdAt', ''), '%a, %d %b %Y %H:%M:%S %z'))) if p.get('createdAt') else 0,
+            'join': p.get('pinJoin', {}).get('visualAnnotation', ''),
+            'dominant_color': p.get('dominantColor', ''),
+            'count': {
+                'reaction': p.get('totalReactionCount', 0),
+                'save': p.get('aggregatedPinData', {}).get('aggregatedStats', {}).get('saves', 0),
+                'share': p.get('shareCount', 0),
+                'favorite': p.get('favoriteUserCount', 0),
+                'repin': p.get('repinCount', 0),
+            },
+            'text': {
+                'alt_text': p.get('altText', ''),
+                'auto_alt_text': p.get('autoAltText', ''),
+                'description': p.get('description', ''),
+                'closeup_description': p.get('closeupDescription', ''),
+                'title': p.get('title', ''),
+                'grid_title': p.get('gridTitle', ''),
+            },
+            'category': p.get('category', []),
+        }
+        return data

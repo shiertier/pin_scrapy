@@ -1,4 +1,4 @@
-import requests
+import httpx
 import time
 from ..utils import logger
 from typing import List, Dict, Any
@@ -146,7 +146,7 @@ class PicRelated:
 
                 return batch, bookmark
 
-            except (requests.Timeout, requests.ConnectionError) as e:
+            except (httpx.TimeoutException, httpx.NetworkError) as e:
                 logger.warning(f"请求超时,重试中... ({t}s)")
                 time.sleep(5)
                 if t == 60:  # 最后一次重试失败

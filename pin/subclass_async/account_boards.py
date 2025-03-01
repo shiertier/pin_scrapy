@@ -17,7 +17,25 @@ class AccountBoards:
         """
         self.client = client
 
-    async def get_all(self, username: str) -> List[Dict[str, Any]]:
+    async def get_ids(self, username: str) -> List[str]:
+        boards_data = await self.get_data(username)
+        return list(dict([(board_data['id'], board_data) for board_data in boards_data]).keys())
+
+    async def get_data(self, username: str) -> List[Dict[str, Any]]:
+        boards_data_origin = await self.get_data_origin(username)
+        boards_data = []
+        for board_data_origin in boards_data_origin:
+            board_data = {
+                'id': board_data_origin['id'],
+                'name': board_data_origin['name'],
+                'url': board_data_origin['url'],
+                'follower_count': board_data_origin['follower_count'],
+                'pin_count': board_data_origin['pin_count'],
+            }
+            boards_data.append(board_data)
+        return boards_data
+
+    async def get_data_origin(self, username: str) -> List[Dict[str, Any]]:
         """
         获取用户的所有画板
 
@@ -29,16 +47,18 @@ class AccountBoards:
         bookmark = None
         boards = []
 
-        while bookmark != '-end-':
-            options = self._build_options(username, bookmark)
-
+        while True:
             # 显示进度
-            b_len = len(boards) - 1 if len(boards) > 0 else 0
+            b_len = len(boards)
             logger.debug(f"获取所有板块 [ {b_len} / ? ]")
 
             try:
-                batch, bookmark = await self._fetch_batch(options, username)
+                batch, bookmark = await self._fetch_batch(username, bookmark)
                 boards.extend(batch)
+
+                # 如果没有下一页，退出循环
+                if bookmark == "-end-" or bookmark == '%22-end-%22':
+                    break
             except Exception as e:
                 logger.error(f"获取数据失败: {e}")
                 break
@@ -66,8 +86,9 @@ class AccountBoards:
 
         return options
 
-    async def _fetch_batch(self, options: Dict[str, Any], username: str) -> tuple:
+    async def _fetch_batch(self, username: str, bookmark: str = None) -> tuple:
         """获取一批数据"""
+        options = self._build_options(username, bookmark)
         post_d = urllib.parse.urlencode({
             'source_url': username,
             'data': {

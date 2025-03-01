@@ -1,4 +1,4 @@
-import requests
+import httpx
 from http.cookies import SimpleCookie
 from fake_useragent import UserAgent
 from .config import VER
@@ -106,9 +106,9 @@ class PinterestClient:
         }
 
         # 创建会话
-        self.session = requests.Session()
-        self.session.headers.update(headers)
-        if cookies:
-            self.session.cookies.update(cookies)
-        if self.proxies:
-            self.session.proxies.update(self.proxies)
+        self.session = httpx.Client(
+            headers=headers,
+            cookies=cookies,
+            proxies=self.proxies if self.proxies else None,
+            follow_redirects=True
+        )

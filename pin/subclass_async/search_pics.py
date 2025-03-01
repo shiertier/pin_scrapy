@@ -17,7 +17,33 @@ class SearchPics:
         """
         self.client = client
 
-    async def get_all(self, query: str) -> List[Dict[str, Any]]:
+    async def get_pics_urls(self, query: str) -> List[str]:
+        pics_data = await self.get_pics_data(query)
+        return [pic['url'] for pic in pics_data]
+
+    async def get_pics_data(self, query: str) -> List[Dict[str, Any]]:
+        pics_data_origin = await self.get_pics_data_origin(query)
+        pics_data = []
+        for pic in pics_data_origin:
+            pics_data.append({
+                'id': pic['id'],
+                'url': pic.get('images', {}).get('orig', {}).get('url', ''),
+                'width': pic.get('images', {}).get('orig', {}).get('width', 0),
+                'height': pic.get('images', {}).get('orig', {}).get('height', 0),
+                'created_at': int(time.mktime(time.strptime(pic.get('created_at', ''), '%a, %d %b %Y %H:%M:%S %z'))) if pic.get('created_at') else 0,
+                'dominant_color': pic.get('dominant_color', ''),
+                'count': {
+                    'save': pic.get('aggregate_metadata', {}).get('aggregated_stats', {}).get('saves', 0),
+                    'repin': pic.get('repin_count', 0),
+                },
+                'text': {
+                    'title': pic.get('title', ''),
+                    'auto_alt_text': pic.get('auto_alt_text', ''),
+                }
+            })
+        return pics_data
+
+    async def get_pics_data_origin(self, query: str) -> List[Dict[str, Any]]:
         """
         搜索图片
 
@@ -103,15 +129,8 @@ class SearchPics:
                     params=post_d
                 )
                 data = r.json()
-
-                # 修正数据提取路径
                 batch = data['resource_response']['data']['results']
-                bookmark = data['resource_response'].get('bookmark')  # 使用get避免KeyError
-
-                # 如果没有bookmark，说明是最后一页
-                if not bookmark:
-                    bookmark = '-end-'
-
+                bookmark = data['resource']['options']['bookmarks'][0]
                 return batch, bookmark
 
             except (httpx.TimeoutException, httpx.ConnectError) as e:
