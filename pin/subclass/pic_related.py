@@ -41,14 +41,19 @@ class PicRelated:
         for pic in pics_data_origin:
             pics_data.append({
                 'id': pic['id'],
-                'title': pic.get('title', ''),
-                'repin_count': pic.get('repin_count', 0),
-                'save_count': pic.get('aggregate_metadata', {}).get('aggregated_stats', {}).get('saves', 0),
                 'url': pic.get('images', {}).get('orig', {}).get('url', ''),
                 'width': pic.get('images', {}).get('orig', {}).get('width', 0),
                 'height': pic.get('images', {}).get('orig', {}).get('height', 0),
-                'created_at': pic.get('created_at', ''),
+                'created_at': int(time.mktime(time.strptime(pic.get('created_at', ''), '%a, %d %b %Y %H:%M:%S %z'))) if pic.get('created_at') else 0,
                 'dominant_color': pic.get('dominant_color', ''),
+                'count': {
+                    'save': pic.get('aggregate_metadata', {}).get('aggregated_stats', {}).get('saves', 0),
+                    'repin': pic.get('repin_count', 0),
+                },
+                'text': {
+                    'title': pic.get('title', ''),
+                    'auto_alt_text': pic.get('auto_alt_text', ''),
+                }
             })
         return pics_data
 

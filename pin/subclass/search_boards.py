@@ -17,25 +17,6 @@ class SearchBoards:
         self.client = client
 
     def get_ids(self, query: str) -> List[str]:
-        boards_data = self.get_data(query)
-        return list(dict([(board_data['id'], board_data) for board_data in boards_data]).keys())
-
-    def get_data(self, query: str) -> List[Dict[str, Any]]:
-        boards_data_origin = self.get_data_origin(query)
-        boards_data = []
-        for board_data_origin in boards_data_origin:
-            board_data = {
-                'id': board_data_origin['id'],
-                # 'node_id': board_data_origin['node_id'],
-                'name': board_data_origin['name'],
-                'url': board_data_origin['url'],
-                'follower_count': board_data_origin['follower_count'],
-                'pin_count': board_data_origin['pin_count'],
-            }
-            boards_data.append(board_data)
-        return boards_data
-
-    def get_data_origin(self, query: str) -> List[str]:
         """
         搜索画板
 
@@ -50,7 +31,7 @@ class SearchBoards:
         while True:
             # 显示进度
             b_len = len(board_ids)
-            logger.debug(f"获取搜索结果 [ {b_len} / ? ]")
+            logger.info(f"获取搜索结果 [ {b_len} / ? ]")
 
             try:
                 batch, bookmark = self._fetch_batch(query, bookmark)
@@ -72,32 +53,32 @@ class SearchBoards:
     def _build_options(self, query: str, bookmark: str = None) -> Dict[str, Any]:
         """构建请求参数"""
         options = {
-            'applied_unified_filters': None,
+            'applied_unified_filters': 'null',
             'appliedProductFilters': "---",
-            'article': None,
-            'auto_correction_disabled': False,
-            'corpus': None,
-            'customized_rerank_type': None,
-            'domains': None,
+            'article': 'null',
+            'auto_correction_disabled': 'false',
+            'corpus': 'null',
+            'customized_rerank_type': 'null',
+            'domains': 'null',
             'dynamicPageSizeExpGroup': "enabled_275",
-            'filters': None,
-            'journey_depth': None,
-            'page_size': None,
-            'price_max': None,
-            'price_min': None,
-            'query_pin_sigs': None,
+            'filters': 'null',
+            'journey_depth': 'null',
+            'page_size': 'null',
+            'price_max': 'null',
+            'price_min': 'null',
+            'query_pin_sigs': 'null',
             'query': query,
-            'redux_normalize_feed': True,
-            'request_params': None,
+            'redux_normalize_feed': 'true',
+            'request_params': 'null',
             'rs': "content_type_filter",
             'scope': "boards",
-            'selected_one_bar_modules': None,
-            'seoDrawerEnabled': False,
-            'source_id': None,
-            'source_module_id': None,
+            'selected_one_bar_modules': 'null',
+            'seoDrawerEnabled': 'false',
+            'source_id': 'null',
+            'source_module_id': 'null',
             'source_url': f"/search/boards/?q={urllib.parse.quote(query)}&rs=content_type_filter",
-            'top_pin_id': None,
-            'top_pin_ids': None
+            'top_pin_id': 'null',
+            'top_pin_ids': 'null'
         }
 
         if bookmark:

@@ -26,14 +26,19 @@ class SearchPics:
         for pic in pics_data_origin:
             pics_data.append({
                 'id': pic['id'],
-                'title': pic.get('title', ''),
-                'repin_count': pic.get('repin_count', 0),
-                'save_count': pic.get('aggregate_metadata', {}).get('aggregated_stats', {}).get('saves', 0),
                 'url': pic.get('images', {}).get('orig', {}).get('url', ''),
                 'width': pic.get('images', {}).get('orig', {}).get('width', 0),
                 'height': pic.get('images', {}).get('orig', {}).get('height', 0),
-                'created_at': pic.get('created_at', ''),
+                'created_at': int(time.mktime(time.strptime(pic.get('created_at', ''), '%a, %d %b %Y %H:%M:%S %z'))) if pic.get('created_at') else 0,
                 'dominant_color': pic.get('dominant_color', ''),
+                'count': {
+                    'save': pic.get('aggregate_metadata', {}).get('aggregated_stats', {}).get('saves', 0),
+                    'repin': pic.get('repin_count', 0),
+                },
+                'text': {
+                    'title': pic.get('title', ''),
+                    'auto_alt_text': pic.get('auto_alt_text', ''),
+                }
             })
         return pics_data
 
@@ -72,31 +77,32 @@ class SearchPics:
     def _build_options(self, query: str, bookmark: str = None) -> Dict[str, Any]:
         """构建请求参数"""
         options = {
-            'applied_unified_filters': None,
+            'applied_unified_filters': 'null',
             'appliedProductFilters': "---",
-            'article': None,
-            'auto_correction_disabled': False,
-            'corpus': None,
-            'customized_rerank_type': None,
-            'domains': None,
-            'dynamicPageSizeExpGroup': None,
-            'filters': None,
-            'journey_depth': None,
-            'page_size': None,
-            'price_max': None,
-            'price_min': None,
-            'query_pin_sigs': None,
+            # 'article': 'null',
+            'auto_correction_disabled': 'false',
+            'corpus': 'null',
+            'customized_rerank_type': 'null',
+            'domains': 'null',
+            'dynamicPageSizeExpGroup': 'null',
+            'filters': 'null',
+            'journey_depth': 'null',
+            'page_size': 25,
+            'price_max': 'null',
+            'price_min': 'null',
+            'query_pin_sigs': 'null',
             'query': query,
-            'redux_normalize_feed': True,
-            'request_params': None,
+            'redux_normalize_feed': 'true',
+            'request_params': 'null',
             'rs': "content_type_filter",
-            'scope': "pins",  # 与SearchBoards的区别
-            'selected_one_bar_modules': None,
-            'seoDrawerEnabled': False,
-            'source_id': None,
-            'source_module_id': None,
-            'top_pin_id': None,
-            'top_pin_ids': None
+            'scope': "pins",
+            'selected_one_bar_modules': 'null',
+            'seoDrawerEnabled': 'false',
+            'source_id': 'null',
+            'source_module_id': 'null',
+            'source_url': f"/search/pins/?q={urllib.parse.quote(query)}&rs=typed",
+            'top_pin_id': 'null',
+            'top_pin_ids': 'null'
         }
 
         if bookmark:
@@ -124,7 +130,7 @@ class SearchPics:
                     timeout=60
                 )
                 data = r.json()
-
+                print(data)
                 # 修正数据提取路径
                 batch = data['resource_response']['data']['results']
                 bookmark = data['resource_response'].get('bookmark')  # 使用get避免KeyError
